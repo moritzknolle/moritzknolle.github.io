@@ -1,5 +1,7 @@
 # moritzknolle.github.io
 
+Live at https://moritzknolle.com (custom domain set by the `CNAME` file; DNS at Namecheap points to GitHub Pages).
+
 Personal academic website. Static HTML/CSS/JS, no build step, no dependencies.
 
 ```
