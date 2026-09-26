@@ -12,7 +12,7 @@
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
-  --measure: 42rem;
+  --measure: 62rem;
   --gutter: 1.5rem;
 }
 
@@ -206,14 +206,15 @@ p:last-child { margin-bottom: 0; }
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: .4rem 1.1rem;
+  gap: .4rem 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: .88rem;
 }
-.links a { color: var(--muted); border-bottom-color: transparent; }
-.links a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.links a { display: inline-flex; padding: .2rem; color: var(--muted); border: 0; }
+.links a:hover { color: var(--accent); }
+.links svg { width: 20px; height: 20px; fill: currentColor; }
+.links svg.stroke { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 .portrait {
   flex: 0 0 auto;
@@ -233,15 +234,31 @@ p:last-child { margin-bottom: 0; }
   gap: 1.75rem;
 }
 .topics h3 {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
   margin: 0 0 .35rem;
   font-size: .98rem;
   font-weight: 600;
+}
+.topic-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .topics p {
   margin: 0;
   color: var(--muted);
   font-size: .94rem;
 }
+.topics .topic-link { margin-top: .5rem; font-size: .88rem; }
+.topics .topic-link a { color: var(--accent); border-bottom-color: transparent; }
+.topics .topic-link a:hover { border-bottom-color: var(--accent); }
 
 /* ------------------------------------------------------------ publications */
 .pub-head {

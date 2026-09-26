@@ -1,1 +1,4 @@
 .DS_Store
+
+# Source papers and figures kept locally for reference; not part of the site
+/*.pdf

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disparate privacy risks from medical AI · Moritz Knolle</title>
+<meta name="description" content="Interactive companion to Knolle et al., Nature 2026: privacy attacks on medical AI succeed almost perfectly for some patients and barely at all for others, and underrepresented groups carry a disproportionate share of the risk.">
+<meta name="author" content="Moritz Knolle">
+<link rel="canonical" href="https://moritzknolle.github.io/privacy-risk.html">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Disparate privacy risks from medical AI">
+<meta property="og:description" content="An interactive look at who is exposed when medical AI models are attacked.">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="privacy-risk.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="mark" href="index.html">MK</a>
+  <nav aria-label="Site">
+    <a href="index.html#research">Research</a>
+    <a href="index.html#publications">Publications</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <button id="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+    <svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17"><path class="sun" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path class="moon" d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5Z"/></svg>
+  </button>
+</header>
+
+<main id="main" class="story">
+  <header class="story-head">
+    <p class="kicker"><em>Nature</em> &middot; 2026 &middot; Interactive companion</p>
+    <h1>Disparate privacy risks from medical&nbsp;AI</h1>
+    <p class="lede">
+      A <strong>membership inference attack</strong> uses the outputs of a deployed model to answer one question
+      about a patient: <em>was this person&rsquo;s data used to train it?</em> For a model trained on a cancer
+      cohort, a &ldquo;yes&rdquo; reveals a diagnosis. The study audited these attacks patient by patient across seven clinical
+      datasets and found the risk is anything but evenly shared.
+    </p>
+    <p class="byline">
+      M. A. Knolle, M. J. Menten, F. Jungmann, F. Meissen, B. Glocker, D. Rueckert, G. Kaissis &middot;
+      <a href="https://doi.org/10.1038/s41586-026-10688-0" rel="noopener">Read the paper</a> &middot;
+      <a href="https://github.com/moritzknolle/leakoscope" rel="noopener">Code</a>
+    </p>
+  </header>
+
+  <!-- ------------------------------------------------------ explainer -->
+  <section id="attack" aria-labelledby="attack-title">
+    <p class="step">The attack</p>
+    <h2 id="attack-title" class="finding">What is a membership inference attack?</h2>
+    <p>
+      Medical AI models are often deployed behind a prediction interface: you send in a patient&rsquo;s data,
+      such as a chest radiograph, and get back a prediction, such as a 78% chance of pneumonia. A membership
+      inference attack needs nothing more than this access.
+    </p>
+    <figure class="infographic">
+      <img src="assets/mia-attack.svg" width="1052" height="454" loading="lazy"
+        alt="An untrusted user sends one patient's record to a prediction interface and receives a disease probability. Behind the interface sits either model A, trained on a dataset that includes this record, or model B, trained on one that does not. The user wonders which of the two is producing the predictions.">
+    </figure>
+    <p>
+      The attacker holds one patient&rsquo;s record (the red square) and asks a single question: was this record
+      in the model&rsquo;s training data? Put differently, <em>am I querying model&nbsp;A, trained with this patient&rsquo;s data,
+      or model&nbsp;B, trained without it?</em> A model tends to output slightly higher confidence scores for data
+      it was trained on. The attack compares the score the model outputs for the record with the scores that
+      similar models, trained by the attacker, output for the same record, and turns that difference into a guess.
+    </p>
+    <p>
+      The guess alone can be sensitive. If a model was trained only on patients with cancer, learning that
+      someone was in its training data reveals their diagnosis. One query is enough, so anyone posing as an
+      ordinary user could run the attack, and federated learning offers no protection because the attack
+      targets the finished model. Attack success is scored by AUC: 0.5 is a coin toss, 1.0 means the attacker
+      is always right.
+    </p>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 1 -->
+  <section id="patients" aria-labelledby="patients-title">
+    <p class="step">01 &middot; Individual patients</p>
+    <h2 id="patients-title" class="finding">Some patients are exposed almost perfectly; most are barely touched</h2>
+    <p>
+      Attack success is usually reported as one number for a whole dataset. That number sits close to
+      0.5, the score of random guessing, which suggests little risk. The study instead measured it record by record,
+      using 200 models per dataset, each trained on a random half of the patients. A patient&rsquo;s score is
+      that of their most exposed record. Measured this way, a small tail of patients can be identified with
+      near certainty.
+    </p>
+    <figure class="infographic">
+      <img src="assets/mia-evaluation.svg" width="1052" height="369" loading="lazy"
+        alt="Left: the usual evaluation trains one model on a random subset and scores the attack across all members and non-members at once, giving a single aggregate number. Right: the study&rsquo;s evaluation scores each record on its own, across many models trained with it and many trained without it.">
+      <figcaption>
+        Left: the usual evaluation, one model and one number for all records. Right: the study&rsquo;s evaluation, each record
+        scored separately across many models trained with and without it.
+      </figcaption>
+    </figure>
+
+    <div class="controls" role="group" aria-label="Choose a dataset">
+      <div class="chips" data-dataset-chips></div>
+    </div>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat">
+        <p class="stat-label">Whole-dataset attack AUC</p>
+        <p class="stat-value" id="s-agg">&ndash;</p>
+        <p class="stat-note">0.5 is random guessing</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Essentially unaffected</p>
+        <p class="stat-value" id="s-low">&ndash;</p>
+        <p class="stat-note">of patients with AUC below 0.6</p>
+      </div>
+      <div class="stat stat-accent">
+        <p class="stat-label" id="s-high-label">At or above the threshold</p>
+        <p class="stat-value" id="s-high">&ndash;</p>
+        <p class="stat-note" id="s-high-note">&nbsp;</p>
+      </div>
+    </div>
+
+    <div class="threshold">
+      <label for="threshold">Risk threshold <span class="muted">(patient-level attack AUC)</span></label>
+      <input id="threshold" type="range" min="0.6" max="1" step="0.0025" value="0.9">
+      <output for="threshold" id="threshold-out">0.90</output>
+    </div>
+
+    <figure class="viz">
+      <div class="viz-plot" id="esf" role="img" aria-label="Share of patients at or above each attack AUC, for seven datasets, on a logarithmic scale."></div>
+      <figcaption>
+        Each line is a dataset. Read it as: <em>what share of patients face an attack at least this successful?</em>
+        The vertical scale is logarithmic, so every gridline is ten times fewer patients.
+        The small marker on the horizontal axis shows the selected dataset&rsquo;s whole-dataset score.
+        Hover to compare datasets; click the chart to move the threshold.
+      </figcaption>
+      <details class="table-view">
+        <summary>Show as table</summary>
+        <div class="table-wrap"><table id="esf-table"></table></div>
+      </details>
+    </figure>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 2 -->
+  <section id="groups" aria-labelledby="groups-title">
+    <p class="step">02 &middot; Patient groups</p>
+    <h2 id="groups-title" class="finding">Groups that are rare in the training data are overrepresented among the most vulnerable</h2>
+    <p>
+      The authors took the 1% of records most exposed to the attack and compared who they belong to with the
+      training data as a whole. If risk were shared evenly, every group would make up the same share
+      of both. It does not: small groups, stratified by disease, self-reported race, insurance, sex or
+      imaging protocol, tend to show up far more often than their size predicts.
+    </p>
+
+    <figure class="viz">
+      <div class="legend" aria-hidden="true">
+        <span><i class="key dot over"></i>Overrepresented</span>
+        <span><i class="key dot under"></i>Underrepresented</span>
+        <span><i class="key dot hollow"></i>Difference not significant</span>
+      </div>
+      <div class="viz-plot" id="scatter" role="img" aria-label="Scatter plot of every patient group: share of the training data against how over- or underrepresented the group is among the 1% most vulnerable records."></div>
+      <figcaption>
+        Every dot is one patient group from one of the seven datasets. Left means rarer in the training data;
+        up means more common among the most vulnerable records than its size predicts. Dots of the selected
+        dataset are highlighted. Both scales are logarithmic.
+      </figcaption>
+    </figure>
+
+    <div class="controls" role="group" aria-label="Choose a dataset">
+      <div class="chips" data-dataset-chips></div>
+    </div>
+
+    <div class="legend" aria-hidden="true">
+      <span><i class="key ring"></i>Share of training data</span>
+      <span><i class="key dot neutral"></i>Share of the 1% most vulnerable records</span>
+    </div>
+    <div class="panels" id="panels"></div>
+    <details class="table-view">
+      <summary>Show as table</summary>
+      <div class="table-wrap"><table id="groups-table"></table></div>
+    </details>
+  </section>
+
+  <section id="method" class="method" aria-labelledby="method-title">
+    <h2 id="method-title">About the data</h2>
+    <p>
+      Patient-level scores are the highest record-level attack AUC among each patient&rsquo;s records, estimated from
+      200 target models per dataset (likelihood-ratio attack, residual networks with about 1.5 million parameters).
+      Whole-dataset scores are the mean aggregate LiRA AUC over 10 target models. Fitzpatrick 17k has no patient
+      identifiers, so each image counts as one patient.
+    </p>
+    <p>
+      Group comparisons use the 99th percentile of record-level attack AUC, excluding records whose group is
+      unknown, with row-wise Bonferroni-corrected &chi;&sup2; tests as in Fig.&nbsp;3 and Extended Data Fig.&nbsp;4 of the paper.
+      Only aggregated numbers are shown here; no individual records are published. Illustrations are adapted
+      from Fig.&nbsp;1 of the paper (CC&nbsp;BY&nbsp;4.0).
+    </p>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; <span id="year"></span> Moritz Knolle &middot; <a href="index.html">Home</a></p>
+</footer>
+
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+
+<script src="main.js"></script>
+<script src="privacy-risk-data.js"></script>
+<script src="privacy-risk.js"></script>
+</body>
+</html>

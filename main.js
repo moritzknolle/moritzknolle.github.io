@@ -55,15 +55,28 @@
     }).join("");
   }
 
-  var buttons = Array.prototype.slice.call(document.querySelectorAll(".filters button"));
-  buttons.forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      buttons.forEach(function (b) { b.classList.toggle("active", b === btn); });
-      render(btn.dataset.filter);
+  if (list) {
+    var buttons = Array.prototype.slice.call(document.querySelectorAll(".filters button"));
+    buttons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        buttons.forEach(function (b) { b.classList.toggle("active", b === btn); });
+        render(btn.dataset.filter);
+      });
+    });
+
+    render("selected");
+  }
+
+  /* ------------------------------------------------------------------ email */
+  // Addresses are written as "name[at]domain" in the page so scrapers can't read them;
+  // the real address is only assembled when someone clicks.
+  Array.prototype.forEach.call(document.querySelectorAll("a[data-email]"), function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      window.location.href = "mailto:" + link.getAttribute("data-email").replace("[at]", "@");
     });
   });
 
-  render("selected");
-
-  document.getElementById("year").textContent = new Date().getFullYear();
+  var year = document.getElementById("year");
+  if (year) year.textContent = new Date().getFullYear();
 })();

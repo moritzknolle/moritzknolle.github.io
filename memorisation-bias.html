@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memorisation bias in medical AI · Moritz Knolle</title>
+<meta name="description" content="Interactive companion to Knolle et al., 2026: when a patient's historical records are part of a model's training data, the model's predictions on that patient's future records shift, sometimes decades later.">
+<meta name="author" content="Moritz Knolle">
+<link rel="canonical" href="https://moritzknolle.github.io/memorisation-bias.html">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Memorisation bias in medical AI">
+<meta property="og:description" content="An interactive look at how training on a patient's past records changes predictions on their future ones.">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Georgia,serif'>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="privacy-risk.css">
+<link rel="stylesheet" href="memorisation-bias.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <a class="mark" href="index.html">MK</a>
+  <nav aria-label="Site">
+    <a href="index.html#research">Research</a>
+    <a href="index.html#publications">Publications</a>
+    <a href="index.html#contact">Contact</a>
+  </nav>
+  <button id="theme-toggle" type="button" aria-label="Switch colour theme" title="Switch colour theme">
+    <svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17"><path class="sun" d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path class="moon" d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5Z"/></svg>
+  </button>
+</header>
+
+<main id="main" class="story">
+  <header class="story-head">
+    <p class="kicker">arXiv preprint &middot; 2026 &middot; Interactive companion</p>
+    <h1>Memorisation bias in medical&nbsp;AI</h1>
+    <p class="lede">
+      Medical AI models are routinely deployed on the same populations whose records were used to train them.
+      This study shows that when a patient&rsquo;s historical records are part of a model&rsquo;s training data,
+      the model&rsquo;s predictions on that patient&rsquo;s <em>future</em> records shift towards their earlier
+      health state. The shift can persist for decades and can lead to missed diagnoses.
+    </p>
+    <p class="byline">
+      M. A. Knolle, M. J. Menten, L. Lux, M. Roschewitz, E. A. M. Stanley, G. Kaissis, D. Rueckert, B. Glocker &middot;
+      <a href="https://arxiv.org/abs/2609.17223" rel="noopener">Read the paper</a> &middot;
+      <a href="https://github.com/moritzknolle/memorisation_bias" rel="noopener">Code</a>
+    </p>
+  </header>
+
+  <!-- ------------------------------------------------------ the problem -->
+  <section id="problem" aria-labelledby="problem-title">
+    <p class="step">The problem</p>
+    <h2 id="problem-title" class="finding">What is memorisation bias?</h2>
+    <p>
+      AI models do not only learn general patterns from their training data. Their output for a given input can also
+      depend on whether that exact input was in the training set, a property known as memorisation. It is usually
+      studied as a privacy risk. This study asks a clinical question instead: what happens when a patient whose records
+      were used for training comes back, and the same model is applied to their new data?
+    </p>
+    <p>
+      This is common practice. Germany&rsquo;s national breast cancer screening programme, for example, uses a model
+      trained on 1.2 million mammograms from the same screening population it now serves. Patients return at regular
+      intervals for years, so many of them meet a model trained on their own earlier, typically healthy, records.
+    </p>
+    <figure class="infographic">
+      <img src="assets/mb-alice.svg" width="1052" height="650" loading="lazy"
+        alt="Illustration. Alice contributed three electrocardiograms from 1998, 2003 and 2013, all showing a normal sinus rhythm. Today she returns with an anterior infarct. A model trained on her historical records outputs a 15% probability of infarct for today's recording; an otherwise identical model not trained on them outputs 73%.">
+      <figcaption>
+        An illustrative example. Alice&rsquo;s three historical ECGs all show a normal rhythm; today&rsquo;s shows a heart attack.
+        The model trained on Alice&rsquo;s historical records outputs a much lower infarct probability (15%) than an identical model
+        trained without them (73%), which could lead to a missed diagnosis.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ------------------------------------------------------ method -->
+  <section id="method" aria-labelledby="method-title">
+    <p class="step">The method</p>
+    <h2 id="method-title" class="finding">Quantifying longitudinal memorisation</h2>
+    <figure class="infographic wide">
+      <img src="assets/mb-method.png" width="1586" height="364" loading="lazy"
+        alt="Three steps. One: many models are trained on the historical records of random patient subsets. Two: for each patient, the models are split into those trained on that patient's historical records and those not. Three: the two groups' predictions on the patient's unseen future records are compared with a statistical test.">
+    </figure>
+    <ol class="method-steps">
+      <li><strong>Split each patient&rsquo;s records in time.</strong> Earlier records form the <em>historical</em> set,
+        which may be used for training. Later records form the <em>future</em> set, which is never used for training or model selection.</li>
+      <li><strong>Train 200 models,</strong> each on the historical records of a random half of the patients.
+        Every patient is therefore in the training data of exactly 100 models (&ldquo;IN&rdquo;) and absent from the other 100 (&ldquo;OUT&rdquo;).</li>
+      <li><strong>Compare IN and OUT predictions</strong> on each future record with an energy-distance test, corrected
+        for multiple comparisons. A significant difference means the patient&rsquo;s historical records changed the prediction on their new one.</li>
+      <li><strong>Check against chance.</strong> Repeating the test with randomly split model groups finds no significant
+        records in any dataset, so the effects are specific to each patient&rsquo;s own data.</li>
+    </ol>
+    <div class="table-wrap">
+      <table class="data-table" id="datasets-table"></table>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 1 -->
+  <section id="shift" aria-labelledby="shift-title">
+    <p class="step">01 &middot; Future predictions shift</p>
+    <h2 id="shift-title" class="finding">Training on a patient&rsquo;s historical records alters their future predictions</h2>
+    <p>
+      In all four datasets, a share of future records showed significantly different predictions depending on whether
+      the patient&rsquo;s historical records were in the training data. Most shifts are small, but some exceed 70
+      percentage points. On the historical records themselves, the ones used for training, the effect is far more common
+      and more pronounced.
+    </p>
+
+    <div class="controls" role="group" aria-label="Choose a dataset">
+      <div class="chips" data-dataset-chips></div>
+    </div>
+
+    <div class="stats" aria-live="polite">
+      <div class="stat stat-accent">
+        <p class="stat-label">Future records with a significant shift</p>
+        <p class="stat-value" id="s-future">&ndash;</p>
+        <p class="stat-note" id="s-future-note">&nbsp;</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Historical training records with a significant shift</p>
+        <p class="stat-value" id="s-hist">&ndash;</p>
+        <p class="stat-note" id="s-hist-note">&nbsp;</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Randomly split models (control)</p>
+        <p class="stat-value" id="s-random">&ndash;</p>
+        <p class="stat-note">records with a significant shift</p>
+      </div>
+    </div>
+
+    <div class="threshold">
+      <label for="es-threshold">Size of shift <span class="muted">(IN minus OUT, percentage points)</span></label>
+      <input id="es-threshold" type="range" min="1" max="80" step="1" value="20">
+      <output for="es-threshold" id="es-threshold-out">20</output>
+    </div>
+
+    <figure class="viz">
+      <div class="legend" aria-hidden="true">
+        <span><i class="key line"></i>Future records</span>
+        <span><i class="key line muted-line"></i>Historical training records</span>
+        <span><i class="key line dashed"></i>Randomly split models</span>
+      </div>
+      <div class="viz-plot" id="shift-chart" role="img" aria-label="Share of records whose predictions shifted by at least a given amount, for future records, historical training records and randomly split models."></div>
+      <figcaption id="shift-caption">
+        Share of records whose average predicted probability, for at least one condition, differs between IN and OUT models by at least
+        the amount on the horizontal axis. The vertical scale is logarithmic. Drag the slider or click the chart to set a size.
+      </figcaption>
+    </figure>
+
+    <h3 class="sub">Examples from the data</h3>
+    <p class="sub-note">Single future records with a significant shift from the selected dataset. Only aggregate test results are shown; no patient data.</p>
+    <div class="examples" id="examples"></div>
+
+    <div class="aside-block">
+      <h3 class="sub">Model choice matters</h3>
+      <p class="sub-note">MIMIC-IV-ED is tabular, so the study compared three model types, each tuned for the best validation performance. The share of future records affected differs by orders of magnitude.</p>
+      <div class="hbars" id="arch-bars"></div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 2 -->
+  <section id="persistence" aria-labelledby="persistence-title">
+    <p class="step">02 &middot; Persistence</p>
+    <h2 id="persistence-title" class="finding">Memorisation bias fades with time, but can persist for decades</h2>
+    <p>
+      The longer the gap between a patient&rsquo;s most recent training record and their new record, the rarer and
+      weaker the shift. It does not disappear: in HEEDB, a dataset of electrocardiograms collected from the 1980s to 2025,
+      significant shifts appear on records acquired more than 35 years after the patient&rsquo;s last training record.
+    </p>
+
+    <div class="controls" role="group" aria-label="Choose a dataset">
+      <div class="chips" data-dataset-chips></div>
+    </div>
+
+    <div class="stats compact" aria-live="polite">
+      <div class="stat stat-accent">
+        <p class="stat-label">Longest gap with a significant shift</p>
+        <p class="stat-value" id="s-longest">&ndash;</p>
+        <p class="stat-note" id="s-longest-note">&nbsp;</p>
+      </div>
+      <div class="stat">
+        <p class="stat-label">Longest follow-up in the dataset</p>
+        <p class="stat-value" id="s-followup">&ndash;</p>
+        <p class="stat-note">between last training record and a future record</p>
+      </div>
+    </div>
+
+    <figure class="viz">
+      <div class="viz-plot" id="bins-chart" role="img" aria-label="Share of future records with a significant shift, by time since the patient's most recent training record."></div>
+      <figcaption>
+        Share of future records with a significant shift, grouped by the time between the patient&rsquo;s most recent historical
+        training record and the future record (the acquisition interval). Labels give the number of affected records.
+      </figcaption>
+      <details class="table-view">
+        <summary>Show as table</summary>
+        <div class="table-wrap"><table id="bins-table"></table></div>
+      </details>
+    </figure>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 3 -->
+  <section id="diagnosis" aria-labelledby="diagnosis-title">
+    <p class="step">03 &middot; Diagnostic accuracy</p>
+    <h2 id="diagnosis-title" class="finding">Patients who return with a new condition are diagnosed less often</h2>
+    <p>
+      The study simulated deployment: fixed decision thresholds turn each model&rsquo;s output into a yes/no call, and the
+      calls of IN and OUT models are compared for patients with a significant shift. The effect is asymmetric. When a
+      patient returns with a condition absent from all their training records, sensitivity drops, so the condition is
+      missed more often. When their health is unchanged, both sensitivity and specificity are artificially inflated,
+      which makes the model look better than it is for these patients.
+    </p>
+
+    <div class="controls stacked">
+      <div class="segmented" role="radiogroup" aria-label="Scenario">
+        <button type="button" role="radio" data-scenario="denovo" aria-checked="true">Returns with a new condition</button>
+        <button type="button" role="radio" data-scenario="unchanged" aria-checked="false">Returns with unchanged health</button>
+      </div>
+      <div class="chips" data-dataset-chips role="group" aria-label="Choose a dataset"></div>
+    </div>
+
+    <figure class="viz">
+      <div class="legend" aria-hidden="true">
+        <span><i class="key bar under"></i>Lower with memorisation</span>
+        <span><i class="key bar over"></i>Higher with memorisation</span>
+        <span><i class="key bar faint"></i>Not significant</span>
+      </div>
+      <div class="diag" id="diag"></div>
+      <figcaption id="diag-caption">&nbsp;</figcaption>
+    </figure>
+
+    <div class="icon-compare" id="icon-compare" aria-live="polite"></div>
+
+    <details class="table-view">
+      <summary>Show as table</summary>
+      <div class="table-wrap"><table id="diag-table"></table></div>
+    </details>
+  </section>
+
+  <!-- ------------------------------------------------------ finding 4 -->
+  <section id="privacy" aria-labelledby="privacy-title">
+    <p class="step">04 &middot; Mitigation</p>
+    <h2 id="privacy-title" class="finding">Patient-level differential privacy prevents memorisation bias; record-level does not</h2>
+    <p>
+      Differential privacy (DP) adds calibrated noise during training to limit how much any single unit of data can
+      affect the model. The unit matters. With record-level DP, the variant most used in practice, significant shifts
+      on future records remain even at the strongest protection tested (&epsilon;&nbsp;=&nbsp;1). With patient-level DP,
+      which protects all of a patient&rsquo;s records together, at most two future records are affected at any budget,
+      at some cost in diagnostic performance.
+    </p>
+
+    <div class="controls stacked">
+      <div class="chips" id="dp-chips" role="group" aria-label="Choose a dataset"></div>
+      <div class="segmented" role="radiogroup" aria-label="Records">
+        <button type="button" role="radio" data-dp-set="future" aria-checked="true">Future records</button>
+        <button type="button" role="radio" data-dp-set="historical" aria-checked="false">Historical training records</button>
+      </div>
+    </div>
+
+    <figure class="viz">
+      <div class="legend" aria-hidden="true">
+        <span><i class="key dot record"></i>Record-level DP</span>
+        <span><i class="key dot patient"></i>Patient-level DP</span>
+      </div>
+      <div class="dp-grid">
+        <div>
+          <p class="panel-title">Records with a significant shift</p>
+          <div class="viz-plot" id="dp-count" role="img" aria-label="Number of records with a significant shift at each privacy budget."></div>
+        </div>
+        <div>
+          <p class="panel-title">Diagnostic performance (test AUROC)</p>
+          <div class="viz-plot" id="dp-auroc" role="img" aria-label="Mean test AUROC at each privacy budget."></div>
+        </div>
+      </div>
+      <figcaption>
+        Smaller &epsilon; means stronger protection; &ldquo;none&rdquo; is the matching non-private model. The count scale is logarithmic,
+        with zero shown on the bottom line. Performance is the mean &plusmn; s.d. of the macro-average AUROC across 200 models.
+        These models are smaller than in the main experiments (1.9 million parameters), for computational reasons.
+      </figcaption>
+      <details class="table-view">
+        <summary>Show as table</summary>
+        <div class="table-wrap"><table id="dp-table"></table></div>
+      </details>
+    </figure>
+  </section>
+
+  <section id="about-data" class="method" aria-labelledby="about-data-title">
+    <h2 id="about-data-title">About the data</h2>
+    <p>
+      All four datasets are credentialed clinical data (MIMIC-ECG, MIMIC-CXR and MIMIC-IV-ED from PhysioNet, and HEEDB).
+      In line with their data use agreements, this page shows only aggregate statistics and test results: no ECG traces,
+      images, record contents or identifiers. The shift of a record is the largest absolute difference, across conditions,
+      between the average predicted probabilities of IN and OUT models; its direction is not shown.
+    </p>
+    <p>
+      Significance uses energy-distance tests with Benjamini&ndash;Hochberg correction (false discovery rate 5%).
+      Diagnostic comparisons use exact permutation tests with Bonferroni correction across the 82 comparisons in Fig.&nbsp;4
+      of the paper; for HEEDB, the ten conditions with the most new cases are shown. One HEEDB record with an implausible
+      85-year interval is excluded, as in the paper. Illustrations are adapted from Figs.&nbsp;1 and 2 of the paper.
+    </p>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; <span id="year"></span> Moritz Knolle &middot; <a href="index.html">Home</a></p>
+</footer>
+
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+
+<script src="main.js"></script>
+<script src="memorisation-bias-data.js"></script>
+<script src="memorisation-bias.js"></script>
+</body>
+</html>
