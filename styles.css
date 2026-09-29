@@ -394,12 +394,12 @@ footer {
 }
 .dataart .da-grey,
 .dataart .da-red { transition: opacity 1.4s ease; }
-.dataart.settled .da-grey { opacity: .16; }
+.dataart.settled .da-grey { opacity: .09; }
 .dataart.settled .da-red { opacity: .5; }
 .dataart.instant .da-grey,
 .dataart.instant .da-red { transition: none; }
 @media (max-width: 700px) {
-  .dataart.settled .da-grey { opacity: .1; }
+  .dataart.settled .da-grey { opacity: .06; }
   .dataart.settled .da-red { opacity: .35; }
 }
 
