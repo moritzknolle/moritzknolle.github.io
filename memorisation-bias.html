@@ -43,7 +43,8 @@
       Medical AI models are routinely deployed on the same populations whose records were used to train them.
       This study shows that when a patient&rsquo;s historical records are part of a model&rsquo;s training data,
       the model&rsquo;s predictions on that patient&rsquo;s <em>future</em> records shift towards their earlier
-      health state. The shift can persist for decades and can lead to missed diagnoses.
+      health state, an effect termed <strong>memorisation bias</strong>. The bias can persist for decades and
+      can lead to missed diagnoses.
     </p>
     <p class="byline">
       M. A. Knolle, M. J. Menten, L. Lux, M. Roschewitz, E. A. M. Stanley, G. Kaissis, D. Rueckert, B. Glocker &middot;
@@ -75,7 +76,7 @@
           </p>
         </li>
         <li data-part="Setup">
-          <h3><span class="walk-num">2</span>Train many models on random halves</h3>
+          <h3><span class="walk-num">2</span>Train many models on random subsets</h3>
           <p>
             The study trains 200 models, each on the historical records of a random half of the patients. Some models
             see Alice&rsquo;s historical records and some do not. A blue corner marks the ones that do.
@@ -99,7 +100,7 @@
           </p>
         </li>
         <li data-part="Testing">
-          <h3><span class="walk-num">5</span>Test whether the difference is real</h3>
+          <h3><span class="walk-num">5</span>Test whether the difference is significant</h3>
           <p>
             An energy-distance test compares the IN and OUT predictions as whole distributions. Shuffling the IN and
             OUT labels shows how large the distance gets by chance alone. Alice&rsquo;s distance lies beyond every
