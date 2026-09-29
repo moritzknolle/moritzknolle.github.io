@@ -386,6 +386,14 @@ footer {
   pointer-events: none;
 }
 .dataart .da-grey circle { fill: var(--intro-dot); }
+/* The data manifold: a faint wireframe sheet under the points. */
+.dataart .da-mesh path {
+  fill: none;
+  stroke: var(--intro-dot);
+  stroke-width: .7;
+  stroke-opacity: .4;
+  stroke-dasharray: 1;   /* with pathLength="1", lets the lines draw in */
+}
 .dataart .da-red circle { fill: var(--intro-red); }
 .dataart .da-ring circle {
   fill: none;
