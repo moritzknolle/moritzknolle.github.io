@@ -8,6 +8,8 @@
   --rule:      #e6e5e1;
   --accent:    #2f5d50;
   --accent-bg: #eef3f1;
+  --intro-dot: #9aa0a6;   /* data art on the homepage (data-art.js) */
+  --intro-red: #e34948;
 
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -32,6 +34,8 @@
     --rule:      #26292e;
     --accent:    #7fc0ac;
     --accent-bg: #16211e;
+    --intro-dot: #8a9099;
+    --intro-red: #e66767;
     color-scheme: dark;
   }
 }
@@ -45,6 +49,8 @@
   --rule:      #26292e;
   --accent:    #7fc0ac;
   --accent-bg: #16211e;
+  --intro-dot: #8a9099;
+  --intro-red: #e66767;
   color-scheme: dark;
 }
 
@@ -365,3 +371,38 @@ footer {
   .topbar nav { gap: .85rem; font-size: .8rem; }
   .pub-head { flex-direction: column; align-items: flex-start; gap: .25rem; }
 }
+
+/* ------------------------------------------------------------ data art */
+/* Homepage background (data-art.js): a fixed SVG cloud behind the content. */
+.dataart {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+.dataart .da-grey circle { fill: var(--intro-dot); }
+.dataart .da-red circle { fill: var(--intro-red); }
+.dataart .da-ring circle {
+  fill: none;
+  stroke: var(--intro-red);
+  stroke-width: 1.2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.dataart .da-grey,
+.dataart .da-red { transition: opacity 1.4s ease; }
+.dataart.settled .da-grey { opacity: .16; }
+.dataart.settled .da-red { opacity: .5; }
+.dataart.instant .da-grey,
+.dataart.instant .da-red { transition: none; }
+@media (max-width: 700px) {
+  .dataart.settled .da-grey { opacity: .1; }
+  .dataart.settled .da-red { opacity: .35; }
+}
+
+html.intro-pending body > *:not(.dataart) { visibility: hidden; }
+html.intro-reveal body > *:not(.dataart) { animation: intro-in .8s ease both; }
+@keyframes intro-in { from { opacity: 0; } to { opacity: 1; } }
