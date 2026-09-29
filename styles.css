@@ -10,6 +10,7 @@
   --accent-bg: #eef3f1;
   --intro-dot: #9aa0a6;   /* data art on the homepage (data-art.js) */
   --intro-red: #e34948;
+  --intro-flash: #e34948;   /* white would vanish on the light background */
 
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -36,6 +37,7 @@
     --accent-bg: #16211e;
     --intro-dot: #8a9099;
     --intro-red: #e66767;
+    --intro-flash: #ffffff;
     color-scheme: dark;
   }
 }
@@ -51,6 +53,7 @@
   --accent-bg: #16211e;
   --intro-dot: #8a9099;
   --intro-red: #e66767;
+  --intro-flash: #ffffff;
   color-scheme: dark;
 }
 
@@ -392,17 +395,16 @@ footer {
   transform-box: fill-box;
   transform-origin: center;
 }
-.dataart .da-grey,
-.dataart .da-red { transition: opacity 1.4s ease; }
-.dataart.settled .da-grey { opacity: .09; }
-.dataart.settled .da-red { opacity: .5; }
-.dataart.instant .da-grey,
-.dataart.instant .da-red { transition: none; }
-@media (max-width: 700px) {
-  .dataart.settled .da-grey { opacity: .06; }
-  .dataart.settled .da-red { opacity: .35; }
+.dataart .da-flash circle {
+  fill: none;
+  stroke: var(--intro-flash);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
 }
+/* Group opacity is set by data-art.js from the scroll position. */
 
-html.intro-pending body > *:not(.dataart) { visibility: hidden; }
-html.intro-reveal body > *:not(.dataart) { animation: intro-in .8s ease both; }
-@keyframes intro-in { from { opacity: 0; } to { opacity: 1; } }
+/* Empty space above the homepage hero, so the data art has the first
+   screen to itself with the name just below it (set by the head script). */
+html.art-hero .hero { padding-top: 60vh; padding-top: 60svh; }

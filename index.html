@@ -18,18 +18,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <script>
-  /* Apply a saved theme before first paint, and hide the page for the
-     once-per-session intro (data-art.js); released after 4.5 s regardless. */
+  /* Apply a saved theme before first paint, and leave room above the hero
+     for the data art (data-art.js) unless reduced motion is preferred. */
   (function () {
     var d = document.documentElement;
-    try { var t = localStorage.getItem("theme"); if (t === "light" || t === "dark") d.setAttribute("data-theme", t); } catch (e) {}
     try {
-      var calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (!sessionStorage.getItem("intro") && !calm) {
-        d.classList.add("intro-pending");
-        setTimeout(function () { d.classList.remove("intro-pending"); }, 4500);
-      }
+      var t = localStorage.getItem("theme");
+      if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
     } catch (e) {}
+    if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) d.classList.add("art-hero");
   })();
 </script>
 </head>
