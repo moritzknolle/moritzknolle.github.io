@@ -51,7 +51,7 @@ window.PUBLICATIONS = [
     year: 2025,
     title: "Sensitivity, specificity, and consistency: a tripartite evaluation of privacy filters for synthetic data generation",
     authors: "A. Koeken, A. Ziller, M. Knolle, D. Rueckert",
-    venue: "arXiv preprint",
+    venue: "ICCV Workshop on Responsible Imaging",
     links: [{ label: "Paper", url: "https://arxiv.org/abs/2510.01793" }]
   },
   {
@@ -81,14 +81,14 @@ window.PUBLICATIONS = [
     year: 2024,
     title: "Visual privacy auditing with diffusion models",
     authors: "K. Schwethelm, J. Kaiser, M. Knolle, S. Lockfisch, D. Rueckert, A. Ziller",
-    venue: "arXiv preprint",
-    links: [{ label: "Paper", url: "https://arxiv.org/abs/2403.07588" }]
+    venue: "Transactions on Machine Learning Research",
+    links: [{ label: "Paper", url: "https://openreview.net/forum?id=D3DA7pgpvn" }]
   },
   {
     year: 2023,
     title: "Bias-aware minimisation: understanding and mitigating estimator bias in private SGD",
     authors: "M. Knolle, R. Dorfman, A. Ziller, D. Rueckert, G. Kaissis",
-    venue: "arXiv preprint",
+    venue: "Workshop on Theory and Practice of Differential Privacy (TPDP)",
     links: [{ label: "Paper", url: "https://arxiv.org/abs/2308.12018" }],
     selected: true
   },
@@ -158,7 +158,7 @@ window.PUBLICATIONS = [
     year: 2021,
     title: "An automatic differentiation system for the age of differential privacy",
     authors: "D. Usynin, A. Ziller, M. Knolle, A. Trask, K. Prakash, D. Rueckert, G. Kaissis",
-    venue: "arXiv preprint",
+    venue: "NeurIPS Workshop on Privacy Preserving Machine Learning",
     links: [{ label: "Paper", url: "https://arxiv.org/abs/2109.10573" }]
   },
   {
@@ -172,7 +172,7 @@ window.PUBLICATIONS = [
     year: 2021,
     title: "Sensitivity analysis in differentially private machine learning using hybrid automatic differentiation",
     authors: "A. Ziller, D. Usynin, M. Knolle, K. Prakash, A. Trask, R. Braren, M. Makowski, D. Rueckert, G. Kaissis",
-    venue: "arXiv preprint",
+    venue: "ICML Workshop on Theory and Practice of Differential Privacy",
     links: [{ label: "Paper", url: "https://arxiv.org/abs/2107.04265" }]
   },
   {
