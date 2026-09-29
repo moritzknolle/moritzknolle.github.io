@@ -937,7 +937,11 @@
   root.classList.add("js");
   build();
   // Text in the diagram is measured, so redraw once the web fonts have loaded.
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { build(true); });
+  // Rebuilding cancels running animations, so replay the current step's.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {
+    build(true);
+    if (state.seen && hooks[state.step]) hooks[state.step]();
+  });
 
   var pending = false;
   window.addEventListener("resize", function () {

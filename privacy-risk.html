@@ -107,7 +107,8 @@
           <p>
             The attacker places the target model&rsquo;s output, 93%, against both distributions. It is about
             <span data-walk="lr">7</span> times more likely under the member distribution, so the attack guesses
-            <strong>member</strong>. This comparison is a likelihood-ratio test, the idea behind LiRA, the
+            <strong>member</strong>. This comparison is a likelihood-ratio test, the idea behind
+            <a href="https://arxiv.org/abs/2112.03570" rel="noopener">LiRA</a>, the
             state-of-the-art attack used in the study. One query is enough, and federated learning offers no
             protection because the attack only queries the finished target model.
           </p>
@@ -224,9 +225,9 @@
   <!-- ------------------------------------------------------ finding 2 -->
   <section id="groups" aria-labelledby="groups-title">
     <p class="step">02 &middot; Patient groups</p>
-    <h2 id="groups-title" class="finding">Groups that are rare in the training data are overrepresented among the most vulnerable</h2>
+    <h2 id="groups-title" class="finding">Groups that are underrepresented in the training data are overrepresented among the most vulnerable</h2>
     <p>
-      The authors took the 1% of records most exposed to the attack and compared who they belong to with the
+      We took the top 1% of records most exposed to the attack and compared who they belong to with the
       training data as a whole. If risk were shared evenly, every group would make up the same share
       of both. It does not: small groups, stratified by disease, self-reported race, insurance, sex or
       imaging protocol, tend to show up far more often than their size predicts.
@@ -265,7 +266,9 @@
     <h2 id="method-title">About the data</h2>
     <p>
       Patient-level scores are the highest record-level attack AUC among each patient&rsquo;s records, estimated from
-      200 target models per dataset (likelihood-ratio attack, residual networks with about 1.5 million parameters).
+      200 target models per dataset (the likelihood-ratio attack, LiRA, of
+      <a href="https://arxiv.org/abs/2112.03570" rel="noopener">Carlini et al., 2022</a>; residual networks with
+      about 1.5 million parameters).
       Whole-dataset scores are the mean aggregate LiRA AUC over 10 target models. Fitzpatrick 17k has no patient
       identifiers, so each image counts as one patient.
     </p>
