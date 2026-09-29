@@ -36,11 +36,14 @@
     return Math.max(0, Math.min(T.length - 1, Math.round((t - 0.5) / STEP)));
   }
   function int(n) { return Math.round(n).toLocaleString("en-US"); }
-  // 0.9 → "0.90", 0.9025 → "0.9025"
-  function fmtT(t) {
-    var s = t.toFixed(4).replace(/0+$/, "");
-    return s.length < 4 ? t.toFixed(2) : s;
+  // AUCs are shown as percentages: aucPct(0.57) → "57%", aucPct(0.935, 1) → "93.5%".
+  function aucPct(v, dp) {
+    var s = (v * 100).toFixed(dp || 0);
+    if (s.indexOf(".") >= 0) s = s.replace(/\.?0+$/, "");
+    return s + "%";
   }
+  // Threshold on the 0.25-point grid: 0.9 → "90%", 0.9025 → "90.25%"
+  function fmtT(t) { return aucPct(t, 2); }
 
   // 0.4 → "40%", 0.0185 → "1.9%", 0.00185 → "0.19%", 0.0000577 → "0.0058%"
   function pct(v) {
@@ -117,6 +120,7 @@
     state.threshold = t;
     slider.value = String(t);
     sliderOut.textContent = fmtT(t);
+    slider.setAttribute("aria-valuetext", fmtT(t));
     updateStats();
     drawEsf();
   }
@@ -128,14 +132,14 @@
     var unaffected = (d.patients - d.counts[tIndex(0.6)]) / d.patients;
     var label = d.patientIds ? "patients" : "images";
 
-    document.getElementById("s-agg").textContent = d.aggregateAuc.toFixed(2);
+    document.getElementById("s-agg").textContent = aucPct(d.aggregateAuc);
     document.getElementById("s-low").textContent = pct(unaffected);
     document.getElementById("s-high-label").textContent =
-      "Attack AUC ≥ " + sliderOut.textContent;
+      "Patient-level attack AUC ≥ " + sliderOut.textContent;
     document.getElementById("s-high").textContent = n ? pct(n / d.patients) : "None";
     document.getElementById("s-high-note").textContent = n
       ? int(n) + " of " + int(d.patients) + " " + label + ", about 1 in " + int(d.patients / n)
-      : "of " + int(d.patients) + " " + label + "; the most exposed reaches " + d.maxAuc.toFixed(2);
+      : "of " + int(d.patients) + " " + label + "; the most exposed reaches " + aucPct(d.maxAuc, 1);
   }
 
   var esfBox = document.getElementById("esf");
@@ -166,10 +170,10 @@
     svg("line", { x1: m.l, x2: m.l + pw, y1: m.t + ph, y2: m.t + ph }, axis);
     for (var v = 0.5; v <= 1.0001; v += 0.1) {
       svg("line", { x1: x(v), x2: x(v), y1: m.t + ph, y2: m.t + ph + 4 }, axis);
-      svg("text", { x: x(v), y: m.t + ph + 17, "text-anchor": "middle" }, axis, v.toFixed(1));
+      svg("text", { x: x(v), y: m.t + ph + 17, "text-anchor": "middle" }, axis, aucPct(v));
     }
     svg("text", { "class": "axis-title", x: m.l + pw / 2, y: H - 6, "text-anchor": "middle" }, root,
-      "Patient-level attack AUC (0.5 = guessing, 1.0 = certain)");
+      "Patient-level attack AUC (50% = guessing, 100% = certain)");
     svg("text", { "class": "axis-title", transform: "rotate(-90)", x: -(m.t + ph / 2), y: 12, "text-anchor": "middle" }, root,
       "Share of patients at or above");
 
@@ -186,7 +190,7 @@
         svg("circle", { cx: lx, cy: ly, r: 4, "class": "threshold-dot" }, root);
         var right = !narrow || lx < m.l + pw - 90;
         svg("text", { "class": "series-label on", x: right ? lx + 8 : lx - 8, y: ly - 6, "text-anchor": right ? "start" : "end" }, root,
-          "max " + d.maxAuc.toFixed(2));
+          "max " + aucPct(d.maxAuc, 1));
       }
     });
 
@@ -194,7 +198,7 @@
     var d = byId(state.dataset);
     var ax = x(d.aggregateAuc), ay = m.t + ph;
     svg("path", { "class": "agg-marker", d: "M" + ax + "," + (ay - 1) + " l-5,-8 h10 z" }, root);
-    svg("text", { "class": "annot", x: ax + 8, y: ay - 6 }, root, "whole dataset " + d.aggregateAuc.toFixed(2));
+    svg("text", { "class": "annot", x: ax + 8, y: ay - 6 }, root, "whole dataset " + aucPct(d.aggregateAuc));
 
     // threshold
     var t = state.threshold, ti = tIndex(t), tx = x(t);
@@ -231,14 +235,14 @@
   function buildEsfTable() {
     var table = document.getElementById("esf-table");
     var head = html("tr", null, html("thead", null, table));
-    ["Dataset", "Data", "Patients", "Whole-dataset AUC", "AUC < 0.6", "≥ 0.8", "≥ 0.9", "≥ 0.95", "Highest"].forEach(function (h) { html("th", null, head, h); });
+    ["Dataset", "Data", "Patients", "Whole-dataset AUC", "AUC < 60%", "AUC ≥ 80%", "AUC ≥ 90%", "AUC ≥ 95%", "Highest"].forEach(function (h) { html("th", null, head, h); });
     var body = html("tbody", null, table);
     DATASETS.forEach(function (d) {
       var tr = html("tr", null, body);
-      [d.name, d.modality, int(d.patients), d.aggregateAuc.toFixed(2),
+      [d.name, d.modality, int(d.patients), aucPct(d.aggregateAuc),
         pct((d.patients - d.counts[tIndex(0.6)]) / d.patients),
         pct(d.counts[tIndex(0.8)] / d.patients), pct(d.counts[tIndex(0.9)] / d.patients),
-        pct(d.counts[tIndex(0.95)] / d.patients), d.maxAuc.toFixed(2)
+        pct(d.counts[tIndex(0.95)] / d.patients), aucPct(d.maxAuc, 1)
       ].forEach(function (v) { html("td", null, tr, v); });
     });
   }
