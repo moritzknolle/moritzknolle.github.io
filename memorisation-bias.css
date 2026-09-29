@@ -14,15 +14,6 @@
 .infographic.wide { max-width: none; }
 .infographic.wide img { padding: .75rem 1rem; }
 
-.method-steps {
-  display: grid;
-  gap: .75rem;
-  max-width: var(--prose);
-  margin: 1.25rem 0 1.75rem;
-  padding-left: 1.25rem;
-}
-.method-steps li { padding-left: .25rem; }
-.method-steps li::marker { color: var(--faint); font-variant-numeric: tabular-nums; }
 
 .data-table { border-collapse: collapse; width: 100%; font-size: .84rem; font-variant-numeric: tabular-nums; }
 .data-table th, .data-table td { text-align: right; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); white-space: nowrap; }
@@ -65,6 +56,8 @@ h3.sub { font-size: .95rem; font-weight: 600; margin: 2.25rem 0 .25rem; }
 }
 .segmented button:hover { color: var(--text); }
 .segmented button[aria-checked="true"] { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+/* The scenario switch sits flush with the right edge of the text column. */
+#diagnosis .controls.stacked .segmented { justify-self: end; }
 
 /* ---------------------------------------------------------- legend keys */
 .key.line { width: 16px; height: 0; border-radius: 0; border-top: 2px solid var(--under); }
@@ -181,3 +174,34 @@ h3.sub { font-size: .95rem; font-weight: 600; margin: 2.25rem 0 .25rem; }
   .hbar { grid-template-columns: 7rem 1fr 6.5rem; }
   .example .ex-value { font-size: 1.4rem; }
 }
+
+/* ------------------------------------------------ methodology walkthrough */
+/* Builds on the .walk styles in privacy-risk.css. Blue marks historical
+   records and models trained on them (IN); red marks future records. */
+.walk .t-inb { fill: var(--under); font-weight: 500; }
+.walk .t-fut { fill: var(--over); font-weight: 500; }
+.walk .w-hist { fill: var(--under); fill-opacity: .14; stroke: var(--under); stroke-width: 1.25; }
+.walk .w-fut { fill: var(--over); fill-opacity: .14; stroke: var(--over); stroke-width: 1.25; }
+.walk .w-trace { fill: none; stroke: var(--text); stroke-width: 1.2; stroke-linejoin: round; }
+.walk .w-zone-hist { fill: var(--under); fill-opacity: .06; }
+.walk .w-zone-fut { fill: var(--over); fill-opacity: .07; }
+.walk .w-split { stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.walk .w-dotmark { fill: var(--text); }
+.walk .w-histmark { fill: var(--under); }
+.walk .w-inb-area { fill: var(--under); fill-opacity: .16; }
+.walk .w-inb-line { fill: none; stroke: var(--under); stroke-width: 1.75; stroke-linejoin: round; }
+.walk .w-dot-inb { fill: var(--under); stroke: var(--surface); stroke-width: 1; }
+.walk .w-mean { stroke-width: 1.25; stroke-dasharray: 3 3; }
+.walk .w-mean.inb { stroke: var(--under); }
+.walk .w-mean.out { stroke: var(--muted); }
+.walk .w-null { fill: var(--context); }
+.walk .w-obsb { stroke: var(--under); stroke-width: 2.25; }
+.walk .grow-up { transform-box: fill-box; transform-origin: center bottom; }
+.walk .w-cell { fill: var(--over); fill-opacity: .18; }
+.walk .w-cell.sig { fill-opacity: 1; }
+.walk .w-sigring { fill: none; stroke: var(--text); stroke-width: 1.25; }
+.walk .w-rowbar { fill: var(--over); }
+.walk .w-rowbar.ghost { fill: var(--context); }
+.walk .w-pat { transition: opacity .15s ease; }
+.walk .w-pats.round .w-pat { opacity: .2; }
+.walk .w-pats.round .w-pat.sel { opacity: 1; }

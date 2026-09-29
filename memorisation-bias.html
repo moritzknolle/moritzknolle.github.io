@@ -52,50 +52,85 @@
     </p>
   </header>
 
-  <!-- ------------------------------------------------------ the problem -->
-  <section id="problem" aria-labelledby="problem-title">
-    <p class="step">The problem</p>
-    <h2 id="problem-title" class="finding">What is memorisation bias?</h2>
-    <p>
-      AI models do not only learn general patterns from their training data. Their output for a given input can also
-      depend on whether that exact input was in the training set, a property known as memorisation. It is usually
-      studied as a privacy risk. This study asks a clinical question instead: what happens when a patient whose records
-      were used for training comes back, and the same model is applied to their new data?
-    </p>
-    <p>
-      This is common practice. Germany&rsquo;s national breast cancer screening programme, for example, uses a model
-      trained on 1.2 million mammograms from the same screening population it now serves. Patients return at regular
-      intervals for years, so many of them meet a model trained on their own earlier, typically healthy, records.
-    </p>
-    <figure class="infographic">
-      <img src="assets/mb-alice.svg" width="1052" height="650" loading="lazy"
-        alt="Illustration. Alice contributed three electrocardiograms from 1998, 2003 and 2013, all showing a normal sinus rhythm. Today she returns with an anterior infarct. A model trained on her historical records outputs a 15% probability of infarct for today's recording; an otherwise identical model not trained on them outputs 73%.">
-      <figcaption>
-        An illustrative example. Alice&rsquo;s three historical ECGs all show a normal rhythm; today&rsquo;s shows a heart attack.
-        The model trained on Alice&rsquo;s historical records outputs a much lower infarct probability (15%) than an identical model
-        trained without them (73%), which could lead to a missed diagnosis.
-      </figcaption>
-    </figure>
-  </section>
-
   <!-- ------------------------------------------------------ method -->
   <section id="method" aria-labelledby="method-title">
-    <p class="step">The method</p>
-    <h2 id="method-title" class="finding">Quantifying longitudinal memorisation</h2>
-    <figure class="infographic wide">
-      <img src="assets/mb-method.png" width="1586" height="364" loading="lazy"
-        alt="Three steps. One: many models are trained on the historical records of random patient subsets. Two: for each patient, the models are split into those trained on that patient's historical records and those not. Three: the two groups' predictions on the patient's unseen future records are compared with a statistical test.">
-    </figure>
-    <ol class="method-steps">
-      <li><strong>Split each patient&rsquo;s records in time.</strong> Earlier records form the <em>historical</em> set,
-        which may be used for training. Later records form the <em>future</em> set, which is never used for training or model selection.</li>
-      <li><strong>Train 200 models,</strong> each on the historical records of a random half of the patients.
-        Every patient is therefore in the training data of exactly 100 models (&ldquo;IN&rdquo;) and absent from the other 100 (&ldquo;OUT&rdquo;).</li>
-      <li><strong>Compare IN and OUT predictions</strong> on each future record with an energy-distance test, corrected
-        for multiple comparisons. A significant difference means the patient&rsquo;s historical records changed the prediction on their new one.</li>
-      <li><strong>Check against chance.</strong> Repeating the test with randomly split model groups finds no significant
-        records in any dataset, so the effects are specific to each patient&rsquo;s own data.</li>
-    </ol>
+    <p class="step">Background</p>
+    <h2 id="method-title" class="finding">Methodology</h2>
+    <p>
+      The study measures memorisation bias by comparing models that did and did not see a patient&rsquo;s earlier
+      records. The walkthrough below explains each step, using Alice as the example.
+    </p>
+
+    <div class="walk" id="mb-walk">
+      <div class="walk-stage"></div>
+      <div class="walk-nav" aria-label="Walkthrough steps" role="group"></div>
+      <ol class="walk-steps" aria-live="polite">
+        <li data-part="Setup">
+          <h3><span class="walk-num">1</span>Split each patient&rsquo;s records in time</h3>
+          <p>
+            Each patient&rsquo;s records are split temporally. Earlier records form the <strong>historical</strong> set,
+            which can be used for training. Later records form the <strong>future</strong> set, which is never used
+            for training or model selection. Alice has three historical ECGs with a normal healthy rhythm and a new one
+            showing a heart attack.
+          </p>
+        </li>
+        <li data-part="Setup">
+          <h3><span class="walk-num">2</span>Train many models on random halves</h3>
+          <p>
+            The study trains 200 models, each on the historical records of a random half of the patients. Some models
+            see Alice&rsquo;s historical records and some do not. A blue corner marks the ones that do.
+          </p>
+        </li>
+        <li data-part="Setup">
+          <h3><span class="walk-num">3</span>Partition the models for each patient</h3>
+          <p>
+            For each patient, the models fall into two groups: 100 trained on that patient&rsquo;s historical records
+            (<strong>IN</strong>) and 100 not trained on them (<strong>OUT</strong>). Apart from this one patient, both
+            groups saw equally random data, so any systematic difference between them is due to the patient&rsquo;s
+            own records.
+          </p>
+        </li>
+        <li data-part="Testing">
+          <h3><span class="walk-num">4</span>Predict on the future record</h3>
+          <p>
+            Both groups predict on Alice&rsquo;s future ECG, which no model has seen. Here the IN models output a
+            lower probability of infarct than the OUT models. The difference between the two average predictions,
+            for the condition where it is largest, is the size of the shift. Alice&rsquo;s numbers are illustrative.
+          </p>
+        </li>
+        <li data-part="Testing">
+          <h3><span class="walk-num">5</span>Test whether the difference is real</h3>
+          <p>
+            An energy-distance test compares the IN and OUT predictions as whole distributions. Shuffling the IN and
+            OUT labels shows how large the distance gets by chance alone. Alice&rsquo;s distance lies beyond every
+            shuffle. The study uses 100 models per group and corrects for the number of records tested.
+          </p>
+        </li>
+        <li data-part="Testing">
+          <h3><span class="walk-num">6</span>Repeat for every future record</h3>
+          <p>
+            The same test runs on every future record of every patient. In each of the four datasets, a small share
+            of future records shows a significant shift, from 0.6% to 4.7% depending on the dataset.
+          </p>
+        </li>
+        <li data-part="Testing">
+          <h3><span class="walk-num">7</span>Check against chance</h3>
+          <p>
+            As a control, the models are split into two random groups that ignore which patients they were trained on.
+            Repeating every test with these groups finds no significant records in any dataset, so the shifts come
+            from each patient&rsquo;s own historical records.
+          </p>
+        </li>
+      </ol>
+      <noscript>
+        <figure class="infographic wide">
+          <img src="assets/mb-method.png" width="1586" height="364" loading="lazy"
+            alt="Three steps. One: many models are trained on the historical records of random patient subsets. Two: for each patient, the models are split into those trained on that patient's historical records and those not. Three: the two groups' predictions on the patient's unseen future records are compared with a statistical test.">
+        </figure>
+      </noscript>
+    </div>
+
+    <h3 class="sub">The four datasets</h3>
     <div class="table-wrap">
       <table class="data-table" id="datasets-table"></table>
     </div>
@@ -207,7 +242,7 @@
   <!-- ------------------------------------------------------ finding 3 -->
   <section id="diagnosis" aria-labelledby="diagnosis-title">
     <p class="step">03 &middot; Diagnostic accuracy</p>
-    <h2 id="diagnosis-title" class="finding">Patients who return with a new condition are diagnosed less often</h2>
+    <h2 id="diagnosis-title" class="finding">Data contributors returning with a new condition are at elevated risk of missed diagnoses</h2>
     <p>
       The study simulated deployment: fixed decision thresholds turn each model&rsquo;s output into a yes/no call, and the
       calls of IN and OUT models are compared for patients with a significant shift. The effect is asymmetric. When a
@@ -219,7 +254,7 @@
     <div class="controls stacked">
       <div class="segmented" role="radiogroup" aria-label="Scenario">
         <button type="button" role="radio" data-scenario="denovo" aria-checked="true">Returns with a new condition</button>
-        <button type="button" role="radio" data-scenario="unchanged" aria-checked="false">Returns with unchanged health</button>
+        <button type="button" role="radio" data-scenario="unchanged" aria-checked="false">Returns with unchanged health state</button>
       </div>
       <div class="chips" data-dataset-chips role="group" aria-label="Choose a dataset"></div>
     </div>
@@ -315,5 +350,6 @@
 <script src="main.js"></script>
 <script src="memorisation-bias-data.js"></script>
 <script src="memorisation-bias.js"></script>
+<script src="memorisation-bias-intro.js"></script>
 </body>
 </html>
