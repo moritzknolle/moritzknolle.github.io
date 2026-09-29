@@ -17,7 +17,7 @@
 .method-steps {
   display: grid;
   gap: .75rem;
-  max-width: 44rem;
+  max-width: var(--prose);
   margin: 1.25rem 0 1.75rem;
   padding-left: 1.25rem;
 }
@@ -33,9 +33,9 @@
 .data-table td:first-child { font-weight: 600; }
 
 h3.sub { font-size: .95rem; font-weight: 600; margin: 2.25rem 0 .25rem; }
-.sub-note { font-size: .84rem; color: var(--muted); max-width: 44rem; }
+.sub-note { font-size: .84rem; color: var(--muted); max-width: var(--prose); }
 
-.es-readout { font-size: .85rem; color: var(--muted); margin: 0 0 1rem; max-width: 44rem; min-height: 2.6em; }
+.es-readout { font-size: .85rem; color: var(--muted); margin: 0 0 1rem; max-width: var(--prose); min-height: 2.6em; }
 
 .stats.compact { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
 
