@@ -15,7 +15,7 @@
   --serif: "Newsreader", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
-  --measure: 72rem;
+  --measure: 64rem;
   --prose: 56rem;   /* cap for running text on the interactive pages */
   --gutter: 1.5rem;
 }
