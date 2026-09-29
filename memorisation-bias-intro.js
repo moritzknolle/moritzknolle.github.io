@@ -382,7 +382,9 @@
     var A0 = 40, A1 = 244, ROW = [96, 166];
     var ax = function (v) { return A0 + v * (A1 - A0); };
     text(l, 130, 12, "Predictions on Alice’s future ECG", "t-title", "middle");
-    text(l, 130, 28, "labels shuffled at random", null, "middle");
+    // Shown only while the labels are shuffled; hidden for the real IN/OUT split.
+    var shuffledLabel = text(l, 130, 28, "labels shuffled at random", null, "middle");
+    shuffledLabel.setAttribute("opacity", "0");
     text(l, 4, ROW[0] + 4, "IN", "t-inb");
     text(l, 4, ROW[1] + 4, "OUT", "t-out");
     ROW.forEach(function (y) { el("line", { x1: A0, x2: A1, y1: y + 14, y2: y + 14, "class": "w-axis" }, l); });
@@ -413,7 +415,7 @@
     for (var b = 0; b < BINS; b++) counts.push(0);
     NULL_E.forEach(function (e) { counts[Math.min(BINS - 1, Math.floor(e / maxE * BINS))]++; });
     var cmax = Math.max.apply(null, counts), bw = (H1 - H0) / BINS;
-    text(r, H0, 14, "Energy distance between IN and OUT", "t-title");
+    text(r, H0, 14, "Energy distance between IN and OUT predictions", "t-title");
     text(r, H0, 31, "grey: 500 shuffles · blue: Alice’s real split", "t-faint");
     el("line", { x1: H0, x2: H1, y1: HB, y2: HB, "class": "w-axis" }, r);
     for (var tv = 0; tv <= maxE + 1e-9; tv += 0.1) text(r, hx(tv), HB + 16, tv.toFixed(1), "t-tick", "middle");
@@ -434,6 +436,11 @@
 
     hooks[5] = function () {
       var D = 4200;
+      // Visible from the first shuffle until the dots return to the real split.
+      play(shuffledLabel, [
+        { opacity: 0, offset: 0 }, { opacity: 0, offset: 0.16 }, { opacity: 1, offset: 0.21 },
+        { opacity: 1, offset: 0.84 }, { opacity: 0, offset: 0.9 }, { opacity: 0, offset: 1 }
+      ], { duration: D });
       dots.forEach(function (d) {
         var rows = [d.row, d.row, shuffles[0][d.i], shuffles[0][d.i], shuffles[1][d.i], shuffles[1][d.i],
                     shuffles[2][d.i], shuffles[2][d.i], d.row];
@@ -478,9 +485,9 @@
     return bars;
   }
 
-  /* --------------------------------- scene 6: every future record, all data */
+  /* ------------------------- scene 7: results for every future record */
   function sceneRepeat(svg, P) {
-    var s = on(el("g", {}, svg), [6]);
+    var s = on(el("g", {}, svg), [7]);
     var l = block(s, P.left), r = block(s, P.right);
 
     text(l, 130, 12, "Future records", "t-title", "middle");
@@ -499,7 +506,7 @@
       function (d, i) { return pctFine(shares[i]); },
       function (d) { return int(d.future.sig) + " of " + int(d.future.n); });
 
-    hooks[6] = function () {
+    hooks[7] = function () {
       cells.forEach(function (c, i) {
         play(c, [{ opacity: 0.25 }, { opacity: 1, offset: 0.4 }, { opacity: 1 }],
           { duration: 400, delay: i * 14, fill: "backwards" });
@@ -514,9 +521,81 @@
     };
   }
 
-  /* ------------------------------------------ scene 7: random control */
+  /* ------------------------------ scene 6: multiple-testing correction */
+  // Illustrative p-values for 40 tests: 6 real shifts and 34 records without
+  // one (evenly spread p-values). Benjamini–Hochberg at a 5% false discovery
+  // rate keeps the 6 real shifts; an uncorrected p < 0.05 also flags 2 others.
+  var FDR = 0.05;
+  var PVALS = [0.00005, 0.0002, 0.0006, 0.0011, 0.002, 0.004].map(function (p) { return { p: p, real: true }; })
+    .concat((function () {
+      var out = [];
+      for (var i = 0; i < 34; i++) out.push({ p: (i + 0.5) / 34, real: false });
+      return out;
+    })())
+    .sort(function (a, b) { return a.p - b.p; });
+  var BH_K = 0;
+  PVALS.forEach(function (d, i) { if (d.p <= (i + 1) / PVALS.length * FDR) BH_K = i + 1; });
+  var RAW_K = PVALS.filter(function (d) { return d.p < FDR; }).length;
+
+  function sceneCorrect(svg, P) {
+    var s = on(el("g", {}, svg), [6]);
+    var l = block(s, P.left), r = block(s, P.right);
+
+    // Left: how many false alarms an uncorrected test would raise.
+    var d0 = DATA.datasets[0], n = d0.future.n;
+    text(l, 130, 12, "Testing every record", "t-title", "middle");
+    text(l, 130, 28, d0.name + ", future " + d0.unit, null, "middle");
+    text(l, 130, 76, int(n), "t-huge-mb", "middle");
+    text(l, 130, 96, "tests, one per record", "t-faint", "middle");
+    var alarm = el("g", {}, l);
+    text(alarm, 130, 142, "at p < 0.05 without correction,", null, "middle");
+    text(alarm, 130, 184, "≈ " + int(Math.round(n * FDR / 1000) * 1000), "t-huge-fut", "middle");
+    text(alarm, 130, 206, "records would be flagged", "t-fut", "middle");
+    text(alarm, 130, 222, "by chance alone", "t-fut", "middle");
+
+    // Right: sorted p-values against both thresholds.
+    var X0 = 60, X1 = 424, Y0 = 50, Y1 = 214, LO = -5;
+    var m = PVALS.length;
+    var x = function (k) { return X0 + (k - 0.5) / m * (X1 - X0); };
+    var y = function (p) { return Y0 + (0 - Math.log(Math.max(p, 1e-5)) / Math.LN10) / -LO * (Y1 - Y0); };
+    [1, 0.1, 0.01, 0.001, 0.0001, 0.00001].forEach(function (t, i) {
+      el("line", { x1: X0, x2: X1, y1: y(t), y2: y(t), "class": "w-grid" }, r);
+      text(r, X0 - 6, y(t) + 4, ["1", "0.1", "0.01", "0.001", "10⁻⁴", "10⁻⁵"][i], "t-tick", "end");
+    });
+    el("line", { x1: X0, x2: X1, y1: Y1, y2: Y1, "class": "w-axis" }, r);
+    text(r, (X0 + X1) / 2, Y1 + 18, "Tests sorted by p-value (rank)", "t-axis", "middle");
+    el("text", { x: 0, y: 0, transform: "translate(10 " + (Y0 + Y1) / 2 + ") rotate(-90)", "text-anchor": "middle", "class": "t-axis" }, r, "p-value");
+
+    var raw = el("g", {}, r);
+    el("line", { x1: X0, x2: X1, y1: y(FDR), y2: y(FDR), "class": "w-rawline" }, raw);
+    text(raw, X1, y(FDR) - 6, "p = 0.05, no correction", "t-faint", "end");
+
+    var bh = el("g", {}, r), pts = [];
+    for (var k = 1; k <= m; k++) pts.push(x(k).toFixed(1) + " " + y(k / m * FDR).toFixed(1));
+    el("path", { d: "M" + pts.join("L"), "class": "w-bhline" }, bh);
+    text(bh, x(m) - 4, y(FDR) + 18, "Benjamini–Hochberg", "t-inb", "end");
+
+    var dots = PVALS.map(function (d, i) {
+      var cls = i < BH_K ? "w-p sig" : d.p < FDR ? "w-p chance" : "w-p";
+      return el("circle", { cx: x(i + 1), cy: y(d.p), r: 4, "class": cls }, r);
+    });
+
+    var tally = el("g", {}, r);
+    text(tally, 0, 14, "Benjamini–Hochberg: " + BH_K + " flagged", "t-strong");
+    text(tally, 0, 31, "No correction: " + RAW_K + " flagged, " + (RAW_K - BH_K) + " of them by chance", "t-faint");
+
+    hooks[6] = function () {
+      stagger(dots, 35, 150);
+      play(alarm, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 400, fill: "backwards" });
+      play(raw, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 1700, fill: "backwards" });
+      play(bh, [{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 2400, fill: "backwards" });
+      play(tally, [{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 3000, fill: "backwards" });
+    };
+  }
+
+  /* ------------------------------------------ scene 8: random control */
   function sceneControl(svg, P) {
-    var s = on(el("g", {}, svg), [7]);
+    var s = on(el("g", {}, svg), [8]);
     var l = block(s, P.left), r = block(s, P.right);
 
     text(l, 130, 12, "The same 20 models", "t-title", "middle");
@@ -539,7 +618,7 @@
     rowsChart(r, "Significant shifts, random split", "grey: patient-based split, for comparison", zero, real, null,
       function (d) { return int(d.random.sig) + " of " + int(d.random.n); });
 
-    hooks[7] = function () {
+    hooks[8] = function () {
       tiles.forEach(function (t, i) {
         var from = "translate(" + t.dx + "px," + t.dy + "px)";
         play(t.node, [{ transform: from }, { transform: from, offset: 0.3 }, { transform: "translate(0px,0px)" }],
@@ -568,7 +647,7 @@
     scenePartition(svgRoot, P);
     scenePredict(svgRoot, P);
     sceneTest(svgRoot, P);
-    if (DATA) { sceneRepeat(svgRoot, P); sceneControl(svgRoot, P); }
+    if (DATA) { sceneRepeat(svgRoot, P); sceneCorrect(svgRoot, P); sceneControl(svgRoot, P); }
     apply(false);
   }
 

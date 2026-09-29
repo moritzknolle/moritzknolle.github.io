@@ -104,22 +104,32 @@
           <p>
             An energy-distance test compares the IN and OUT predictions as whole distributions. Shuffling the IN and
             OUT labels shows how large the distance gets by chance alone. Alice&rsquo;s distance lies beyond every
-            shuffle. The study uses 100 models per group and corrects for the number of records tested.
+            shuffle. The study uses 100 models per group.
           </p>
         </li>
         <li data-part="Testing">
-          <h3><span class="walk-num">6</span>Repeat for every future record</h3>
+          <h3><span class="walk-num">6</span>Correct for testing many records</h3>
           <p>
-            The same test runs on every future record of every patient. In each of the four datasets, a small share
-            of future records shows a significant shift, from 0.6% to 4.7% depending on the dataset.
+            Each dataset means hundreds of thousands of tests, so some records would pass p&nbsp;&lt;&nbsp;0.05 by
+            chance alone, about 5% of those without any shift. The study therefore applies the
+            <strong>Benjamini&ndash;Hochberg</strong> correction. It sorts all p-values and compares each one with a
+            threshold that rises with its rank, which keeps the expected share of false discoveries among the flagged
+            records at 5%. The p-values shown here are illustrative.
           </p>
         </li>
         <li data-part="Testing">
-          <h3><span class="walk-num">7</span>Check against chance</h3>
+          <h3><span class="walk-num">7</span>Significant shifts across all datasets</h3>
           <p>
-            As a control, the models are split into two random groups that ignore which patients they were trained on.
-            Repeating every test with these groups finds no significant records in any dataset, so the shifts come
-            from each patient&rsquo;s own historical records.
+            After correction, a small share of future records in each of the four datasets shows a significant shift,
+            from 0.6% to 4.7% depending on the dataset.
+          </p>
+        </li>
+        <li data-part="Testing">
+          <h3><span class="walk-num">8</span>Check against chance</h3>
+          <p>
+            As an additional control, the models are split into two random groups that ignore which patients they
+            were trained on. Repeating every test with these groups finds no significant records in any dataset, so the
+            shifts are due to memorisation and not random predictive variation between models.
           </p>
         </li>
       </ol>

@@ -205,3 +205,12 @@ h3.sub { font-size: .95rem; font-weight: 600; margin: 2.25rem 0 .25rem; }
 .walk .w-pat { transition: opacity .15s ease; }
 .walk .w-pats.round .w-pat { opacity: .2; }
 .walk .w-pats.round .w-pat.sel { opacity: 1; }
+.walk .t-huge-mb { fill: var(--text); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.walk .t-huge-fut { fill: var(--over); font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.walk .narrow .t-huge-mb,
+.walk .narrow .t-huge-fut { font-size: 30px; }
+.walk .w-rawline { stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.walk .w-bhline { fill: none; stroke: var(--under); stroke-width: 2; }
+.walk .w-p { fill: var(--context); }
+.walk .w-p.sig { fill: var(--over); }
+.walk .w-p.chance { fill: var(--surface); stroke: var(--over); stroke-width: 1.5; }
