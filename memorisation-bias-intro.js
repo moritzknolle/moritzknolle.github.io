@@ -462,11 +462,10 @@
   }
 
   /* ------------------------------------------- dataset rows (steps 6–7) */
-  function rowsChart(r, title, note, values, ghosts, labelFn, subFn) {
+  function rowsChart(r, title, values, labelFn, subFn) {
     var B0 = 150, B1 = 400, MAXV = 0.05;
     var bx = function (v) { return B0 + Math.min(v, MAXV) / MAXV * (B1 - B0); };
     text(r, 0, 14, title, "t-title");
-    if (note) text(r, 0, 31, note, "t-faint");
     [0, 0.025, 0.05].forEach(function (t) {
       el("line", { x1: bx(t), x2: bx(t), y1: 40, y2: 222, "class": "w-grid" }, r);
       text(r, bx(t), 238, t === 0.025 ? "2.5%" : pct(t), "t-tick", "middle");
@@ -477,7 +476,6 @@
       var y = 60 + i * 46;
       text(r, 0, y + 2, d.name, "t-strong");
       if (subFn) text(r, 0, y + 18, subFn(d, i), "t-faint");
-      if (ghosts) el("rect", { x: B0, y: y - 8, width: bx(ghosts[i]) - B0, height: 12, rx: 2, "class": "w-rowbar ghost" }, r);
       var v = values[i];
       if (v > 0) bars.push(el("rect", { x: B0, y: y - 8, width: bx(v) - B0, height: 12, rx: 2, "class": "w-rowbar grow" }, r));
       if (labelFn) text(r, bx(v) + 6, y + 2, labelFn(d, i), "t-strong");
@@ -502,7 +500,7 @@
     text(l, 130, 222, "significant shift", "t-fut", "middle");
 
     var shares = DATA.datasets.map(function (d) { return d.future.sig / d.future.n; });
-    var bars = rowsChart(r, "Future records with a significant shift", null, shares, null,
+    var bars = rowsChart(r, "Future records with a significant shift", shares,
       function (d, i) { return pctFine(shares[i]); },
       function (d) { return int(d.future.sig) + " of " + int(d.future.n); });
 
@@ -613,9 +611,8 @@
     text(labels, 78, 240, "Group A", "t-strong", "middle");
     text(labels, 182, 240, "Group B", "t-strong", "middle");
 
-    var real = DATA.datasets.map(function (d) { return d.future.sig / d.future.n; });
     var zero = DATA.datasets.map(function (d) { return d.random.sig / d.random.n; });
-    rowsChart(r, "Significant shifts, random split", "grey: patient-based split, for comparison", zero, real, null,
+    rowsChart(r, "Significant shifts, random split", zero, null,
       function (d) { return int(d.random.sig) + " of " + int(d.random.n); });
 
     hooks[8] = function () {

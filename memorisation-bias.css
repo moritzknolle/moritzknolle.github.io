@@ -201,7 +201,6 @@ h3.sub { font-size: .95rem; font-weight: 600; margin: 2.25rem 0 .25rem; }
 .walk .w-cell.sig { fill-opacity: 1; }
 .walk .w-sigring { fill: none; stroke: var(--text); stroke-width: 1.25; }
 .walk .w-rowbar { fill: var(--over); }
-.walk .w-rowbar.ghost { fill: var(--context); }
 .walk .w-pat { transition: opacity .15s ease; }
 .walk .w-pats.round .w-pat { opacity: .2; }
 .walk .w-pats.round .w-pat.sel { opacity: 1; }
