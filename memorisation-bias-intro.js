@@ -60,7 +60,7 @@
 
   /* ------------------------------------------------ illustrative numbers */
   // Alice's future ECG: IN models output a lower infarct probability (−23 points).
-  var ALICE = { inMu: 0.50, inSd: 0.03, outMu: 0.73, outSd: 0.04 };
+  var ALICE = { inMu: 0.50, inSd: 0.012, outMu: 0.73, outSd: 0.015 };
   var IN_PRED = quantiles(10, ALICE.inMu, ALICE.inSd);
   var OUT_PRED = quantiles(10, ALICE.outMu, ALICE.outSd);
   var OBS_E = energy(IN_PRED, OUT_PRED);
@@ -342,8 +342,8 @@
     var k = (DH - 30) / Math.max(pdf(0, 0, ALICE.inSd), pdf(0, 0, ALICE.outSd));
     function curve(mu, sd, lineCls, areaCls) {
       var pts = [];
-      for (var j = 0; j <= 160; j++) {
-        var v = j / 160;
+      for (var j = 0; j <= 320; j++) {
+        var v = j / 320;
         pts.push(x(v).toFixed(1) + " " + (BASE - pdf(v, mu, sd) * k).toFixed(1));
       }
       var g = el("g", {}, r);
