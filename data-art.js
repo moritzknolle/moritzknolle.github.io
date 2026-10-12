@@ -3,10 +3,11 @@
 
    At the top of the page the cloud is round and at full strength behind the
    landing view; on the first visit of a session it builds up from the centre
-   outwards and its outliers turn red. Scrolling down stretches it into a tall
-   ellipse and fades it into a faint background (scrolling back up reverses
-   this); further scrolling moves vertically along the distribution, from its
-   dense centre towards its sparse tail.
+   outwards and its outliers turn red. Scrolling down first zooms into it, then
+   fades it into a faint background while it turns slightly and stretches into
+   a tall ellipse (scrolling back up reverses this); further scrolling moves
+   vertically along the distribution, from its dense centre towards its sparse
+   tail.
    With reduced motion the cloud is a still, faint background from the start. */
 (function () {
   "use strict";
@@ -118,25 +119,36 @@
 
 
   /* -------------------------------------------------------------- layout */
-  // `stretch` runs from 0 (round, at the top of the page) to 1 (a tall
-  // ellipse: one standard deviation is 45% of the screen height but only a
-  // fraction of its width).
-  var W, H, stretch = -1;
+  // `progress` runs from 0 (at the top of the page) to 1 (a faint
+  // background). Along the way three overlapping stages each ease from 0 to 1
+  // over their own share of it:
+  // - zoom: the cloud grows evenly, keeping its shape, and moves to the
+  //   centre of the screen;
+  // - fade: it fades into the background (applied in update());
+  // - twirl: once the fade is under way, the tilt eases out and the cloud
+  //   stretches into a tall, upright ellipse (one standard deviation is 45%
+  //   of the screen height but only a fraction of its width, `sxEnd`).
+  var ZOOM = [0, 0.5], FADE = [0.3, 1], TWIRL = [0.45, 1], ZOOM_BY = 1.8;
+  function ease(u) { return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; }
+  function stage(k, range) {
+    return ease(Math.min(1, Math.max(0, (k - range[0]) / (range[1] - range[0]))));
+  }
+  var W, H, sxEnd, progress = -1;
   var drawnPhase = -1;
-  function layout(s) {
-    if (s === stretch && phase === drawnPhase) return;
-    stretch = s; drawnPhase = phase;
+  function layout(k) {
+    if (k === progress && phase === drawnPhase) return;
+    progress = k; drawnPhase = phase;
+    var zoom = stage(k, ZOOM), tw = stage(k, TWIRL);
     // The waves are gentler once the cloud is a large background.
-    waveAmp = 1 - 0.6 * s;
-    // At the top the cloud is a wide, slightly tilted ellipse; as it stretches
-    // the tilt eases out and it becomes a tall, upright ellipse.
-    var base = Math.min(W, H) * 0.085;
-    var sx = base * 1.12 + (Math.min(W, 1100) * 0.13 - base * 1.12) * s;
-    var sy = base * 0.92 + (H * 0.45 - base * 0.92) * s;
-    var tilt = -0.25 * (1 - s), ct = Math.cos(tilt), st = Math.sin(tilt);
+    waveAmp = 1 - 0.6 * tw;
+    // At the top the cloud is a wide, slightly tilted ellipse.
+    var base = Math.min(W, H) * 0.085 * (1 + (ZOOM_BY - 1) * zoom);
+    var sx = base * 1.12 + (sxEnd - base * 1.12) * tw;
+    var sy = base * 0.92 + (H * 0.45 - base * 0.92) * tw;
+    var tilt = -0.25 * (1 - tw), ct = Math.cos(tilt), st = Math.sin(tilt);
     // At first the cloud sits in the empty space above the hero (40% of the
-    // screen height); as it stretches it moves to the centre of the screen.
-    var cx = W / 2, cy = H * (0.4 + 0.1 * s);
+    // screen height); as it zooms it moves to the centre of the screen.
+    var cx = W / 2, cy = H * (0.4 + 0.1 * zoom);
     // Points and mesh both sit on the warped sheet.
     function place(a, b) {
       var w = warp(a, b), u = w[0] * sx, v = w[1] * sy;
@@ -183,31 +195,40 @@
   // Armed while the page is at the very top; fires once when scrolling starts.
   var atTop = window.scrollY <= 0;
 
-  function ease(u) { return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; }
-
   // Scroll drives everything: over the first 60% of a screen the cloud
-  // stretches and fades into the background; over the whole page the view
-  // moves one screen down the cloud.
+  // zooms, fades and twirls into the background; over the whole page the
+  // view moves one screen down the cloud.
   function update() {
     var levels = narrow.matches ? { grey: 0.06, red: 0.35 } : { grey: 0.09, red: 0.5 };
     var k = 1, p = 0;
     if (!reduce) {
-      k = ease(Math.min(1, Math.max(0, window.scrollY / (0.6 * H))));
+      k = Math.min(1, Math.max(0, window.scrollY / (0.6 * H)));
       var max = Math.max(1, doc.scrollHeight - H);
       p = Math.min(1, Math.max(0, window.scrollY / max));
     }
     layout(k);
     if (window.scrollY <= 0) atTop = true;
     else if (atTop) { atTop = false; flash(); }
-    greyG.style.opacity = (1 + (levels.grey - 1) * k).toFixed(3);
+    var f = stage(k, FADE);
+    greyG.style.opacity = (1 + (levels.grey - 1) * f).toFixed(3);
     meshG.style.opacity = greyG.style.opacity;
-    redG.style.opacity = (1 + (levels.red - 1) * k).toFixed(3);
+    redG.style.opacity = (1 + (levels.red - 1) * f).toFixed(3);
     mover.setAttribute("transform", "translate(0 " + (-p * H).toFixed(1) + ")");
   }
 
   function resize() {
     W = window.innerWidth; H = window.innerHeight;
-    stretch = -1;
+    // Where the text column leaves side margins of at least 100px, the
+    // background is wide enough that 3.2 SD falls in the middle of each
+    // margin, so a few red outliers stay visible beside the text further
+    // down the page.
+    var main = document.querySelector("main"), textW = W;
+    if (main) {
+      var cs = getComputedStyle(main);
+      textW = main.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    }
+    sxEnd = (W - textW) / 2 >= 100 ? (W + textW) / 4 / 3.2 : Math.min(W, 1100) * 0.13;
+    progress = -1;
     update();
   }
   resize();
@@ -248,10 +269,10 @@
       var dt = ts - last;
       if (dt > 33) {
         last = ts;
-        if (stretch < 0.95) {
+        if (progress < 0.95) {
           phase += Math.min(dt, 100) / 1000 * (2 * Math.PI / 7);
           var t0 = performance.now();
-          layout(stretch);
+          layout(progress);
           if (!judged) {
             if (!started) started = t0;
             spent += performance.now() - t0;
