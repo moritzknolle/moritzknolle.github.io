@@ -4,10 +4,10 @@
    At the top of the page the cloud is round and at full strength behind the
    landing view; on the first visit of a session it builds up from the centre
    outwards and its outliers turn red. Scrolling down zooms into it while it
-   stretches into a tall ellipse, then fades it into a faint background while
-   it turns slightly upright (scrolling back up reverses this); further
-   scrolling moves vertically along the distribution, from its dense centre
-   towards its sparse tail.
+   stretches into a tall ellipse and fades into a faint background, and once
+   the fade is under way it turns slightly upright (scrolling back up reverses
+   this); further scrolling moves vertically along the distribution, from
+   its dense centre towards its sparse tail.
    With reduced motion the cloud is a still, faint background from the start. */
 (function () {
   "use strict";
@@ -125,10 +125,12 @@
   // - zoom: the cloud grows and stretches into a tall ellipse in one motion
   //   (one standard deviation ends at 45% of the screen height but only a
   //   fraction of its width, `sxEnd`), and moves to the centre of the screen;
-  // - fade: it fades into the background (applied in update());
+  // - fade: it fades into the background from the first scroll, finishing
+  //   before the name has reached the middle of the screen (applied in
+  //   update());
   // - twirl: once the fade is under way, the tilt eases out and the cloud
   //   turns upright.
-  var ZOOM = [0, 0.6], FADE = [0.3, 1], TWIRL = [0.45, 1];
+  var ZOOM = [0, 0.6], FADE = [0, 0.6], TWIRL = [0.2, 1];
   function ease(u) { return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; }
   function stage(k, range) {
     return ease(Math.min(1, Math.max(0, (k - range[0]) / (range[1] - range[0]))));
