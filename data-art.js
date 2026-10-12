@@ -15,6 +15,8 @@
   var doc = document.documentElement;
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   var narrow = window.matchMedia ? window.matchMedia("(max-width: 700px)") : { matches: false };
+  // Phones and tablets: touch is the main input and there is no hover.
+  var touch = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
 
   // The build-up animation plays once per browser session.
   var buildUp = false;
@@ -80,6 +82,9 @@
       return da * da + db * db > 0.35 * 0.35;
     });
   });
+  // On touch devices, keep every other grey point to lighten the animation.
+  // Thinning after generation keeps the cloud's shape and its red outliers.
+  if (touch) pts = pts.filter(function (p, i) { return p.fringe || i % 2 === 0; });
   var rMax = 0;
   pts.forEach(function (p) {
     rMax = Math.max(rMax, p.r);
