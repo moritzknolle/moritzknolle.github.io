@@ -130,13 +130,48 @@
         <li data-part="Measuring success">
           <h3><span class="walk-num">7</span>Measuring attack success for individual records</h3>
           <p>
-            The study instead scored each target record separately. Of 200 target models per dataset, about half
-            were trained with a given record. Their confidence scores form two distributions, and the record-level
-            AUC is the chance that a model trained with the record outputs a higher score than one trained without it.
+            Instead, the study measured attack success for each target record separately. It trained 200 target
+            models per dataset, each on a random half of the data, so that exactly 100 were trained with any given
+            target record and 100 without it. The confidence scores these target models output for the target record
+            form two distributions. The record-level MIA AUC measures how well the two are separated: it is the chance
+            that a target model trained with the target record outputs a higher score than one trained without it.
+            It is 50% if the two distributions overlap completely and 100% if they are fully separated.
           </p>
           <p>
-            Each grey line is one record&rsquo;s MIA ROC curve. Most sit near the diagonal, but a few bow sharply
-            towards the top left. Select a curve to see its confidence score distributions.
+            State-of-the-art attacks such as LiRA
+            (<a href="https://arxiv.org/abs/2112.03570" rel="noopener">Carlini et al., 2022</a>) and RMIA
+            (<a href="https://arxiv.org/abs/2312.03262" rel="noopener">Zarifzadeh et al., 2024</a>) assume these
+            distributions are Gaussian, so the record-level AUC follows from their means &mu; and standard
+            deviations &sigma;:
+            <math display="block" class="walk-formula">
+              <mrow>
+                <mtext>AUC</mtext>
+                <mo>=</mo>
+                <mi mathvariant="normal">&Phi;</mi>
+                <mrow>
+                  <mo>(</mo>
+                  <mfrac>
+                    <mrow>
+                      <msub class="m-with"><mi>&mu;</mi><mtext>with</mtext></msub>
+                      <mo>&minus;</mo>
+                      <msub class="m-without"><mi>&mu;</mi><mtext>without</mtext></msub>
+                    </mrow>
+                    <msqrt>
+                      <msubsup class="m-with"><mi>&sigma;</mi><mtext>with</mtext><mn>2</mn></msubsup>
+                      <mo>+</mo>
+                      <msubsup class="m-without"><mi>&sigma;</mi><mtext>without</mtext><mn>2</mn></msubsup>
+                    </msqrt>
+                  </mfrac>
+                  <mo>)</mo>
+                </mrow>
+              </mrow>
+            </math>
+            where &Phi; is the cumulative distribution function of the standard normal distribution.
+          </p>
+          <p>
+            Each grey line is one target record&rsquo;s ROC curve. Most sit near the diagonal, which means random
+            guessing, but a few bow sharply towards the top left: for these records, the attack works almost
+            perfectly. Select a curve to see the two distributions behind it.
           </p>
           <div class="walk-toggle" role="group" aria-label="Choose a target record">
             <button type="button" class="chip" data-pick="prev">Previous record</button>

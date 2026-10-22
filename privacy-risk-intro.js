@@ -664,10 +664,21 @@
     var aucG = el("g", {}, r);
     var aucT = text(aucG, CX, 46, "", "t-huge");
     text(aucG, CX, 64, "record-level AUC", "t-faint");
+    // Below it, the mean (μ) and standard deviation (σ) of each distribution,
+    // the inputs to the AUC formula in the step text; same order and colours
+    // as the legend.
+    function statCell(x, y, sym, cls) {
+      var t = el("text", { x: x, y: y, "class": "t-stat" }, aucG);
+      el("tspan", { "class": "t-faint" }, t, sym + " ");
+      return el("tspan", { "class": cls }, t, "");
+    }
+    var stats = [[84, "t-in"], [100, "t-out"]].map(function (row) {
+      return { mu: statCell(CX, row[0], "μ", row[1]), sd: statCell(CX + 80, row[0], "σ", row[1]) };
+    });
 
     // The axis zooms to 3 points either side of the selected record's centre.
     var distG = el("g", {}, r);
-    var DB = 180, DH = 88, D0 = 0, D1 = 1;
+    var DB = 180, DH = 70, D0 = 0, D1 = 1;
     var dx = function (v) { return CX + (v - D0) / (D1 - D0) * CW; };
     var ticksG = el("g", {}, distG);
     el("line", { x1: CX, x2: CX + CW, y1: DB, y2: DB, "class": "w-axis" }, r);
@@ -697,6 +708,10 @@
       curvesG.appendChild(curves[i].node);
       title.textContent = "Record " + (i + 1) + " of " + RECORDS.length;
       aucT.textContent = pct(p.auc);
+      [[p.inMu, p.inSd], [p.outMu, p.outSd]].forEach(function (m, j) {
+        stats[j].mu.textContent = (m[0] * 100).toFixed(2) + "%";
+        stats[j].sd.textContent = (m[1] * 100).toFixed(2);
+      });
       D0 = p.centre - 0.03; D1 = p.centre + 0.03;
       ticksG.textContent = "";
       [-0.02, 0, 0.02].forEach(function (o) {
