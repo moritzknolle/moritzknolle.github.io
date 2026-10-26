@@ -376,42 +376,19 @@ footer {
 }
 
 /* ------------------------------------------------------------ data art */
-/* Homepage background (data-art.js): a fixed SVG cloud behind the content. */
+/* Homepage background (data-art.js): a fixed canvas behind the content, drawn
+   in the --intro-* colours. It is as tall as the largest viewport, so it still
+   covers the screen when a phone's address bar hides. */
 .dataart {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100lvh;
   z-index: -1;
   pointer-events: none;
 }
-.dataart .da-grey circle { fill: var(--intro-dot); }
-/* The data manifold: a faint wireframe sheet under the points. */
-.dataart .da-mesh path {
-  fill: none;
-  stroke: var(--intro-dot);
-  stroke-width: .7;
-  stroke-opacity: .4;
-  stroke-dasharray: 1;   /* with pathLength="1", lets the lines draw in */
-}
-.dataart .da-red circle { fill: var(--intro-red); }
-.dataart .da-ring circle {
-  fill: none;
-  stroke: var(--intro-red);
-  stroke-width: 1.2;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-.dataart .da-flash circle {
-  fill: none;
-  stroke: var(--intro-flash);
-  stroke-width: 2;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Group opacity is set by data-art.js from the scroll position. */
 
 /* Empty space above the homepage hero, so the data art has the first
    screen to itself with the name just below it (set by the head script). */
