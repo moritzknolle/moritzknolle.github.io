@@ -3,11 +3,12 @@
 
    At the top of the page the cloud is round and at full strength behind the
    landing view; on the first visit of a session it builds up from the centre
-   outwards and its outliers turn red. Scrolling down zooms into it while it
-   stretches into a tall ellipse and fades into a faint background, and once
-   the fade is under way it turns slightly upright (scrolling back up reverses
-   this); further scrolling moves vertically along the distribution, from
-   its dense centre towards its sparse tail.
+   outwards and its outliers turn red. Scrolling down first fades out the
+   mesh, then zooms into the cloud while it stretches into a tall ellipse and
+   fades into a faint background, and once the fade is under way it turns
+   slightly upright (scrolling back up reverses this); further scrolling
+   moves vertically along the distribution, from its dense centre towards its
+   sparse tail.
    With reduced motion the cloud is a still, faint background from the start.
 
    The cloud is drawn on a canvas and redrawn at most once per frame, only
@@ -123,9 +124,10 @@
 
   /* -------------------------------------------------------------- layout */
   // `progress` runs from 0 (at the top of the page) to 1 (a faint
-  // background). Along the way three overlapping stages each ease from 0 to 1
+  // background). Along the way four overlapping stages each ease from 0 to 1
   // over their own share of it:
-  // - zoom: the cloud grows and stretches into a tall ellipse in one motion
+  // - grid: the mesh fades out with the first scroll, before the zoom;
+  // - zoom: once the mesh has gone, the cloud grows and stretches into a tall ellipse in one motion
   //   (one standard deviation ends at 45% of the screen height but only a
   //   fraction of its width, `sxEnd`), and moves to the centre of the screen;
   // - fade: it fades into the background from the first scroll, finishing
@@ -133,7 +135,7 @@
   //   draw());
   // - twirl: once the fade is under way, the tilt eases out and the cloud
   //   turns upright.
-  var ZOOM = [0, 0.6], FADE = [0, 0.6], TWIRL = [0.2, 1];
+  var GRID = [0, 0.15], ZOOM = [0.15, 0.6], FADE = [0, 0.6], TWIRL = [0.2, 1];
   function ease(u) { return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; }
   function stage(k, range) {
     return ease(Math.min(1, Math.max(0, (k - range[0]) / (range[1] - range[0]))));
@@ -170,7 +172,8 @@
       var d = Math.sqrt(fu * fu + fv * fv);
       return d < 0.55 ? 1 - 0.2 * d / 0.55 : d < 1 ? 0.8 * (1 - d) / 0.45 : 0;
     }
-    MESH.forEach(function (line) {
+    // Once the mesh has faded out, it is no longer placed.
+    if (k < GRID[1]) MESH.forEach(function (line) {
       for (var j = 0; j <= SEGS; j++) {
         var t = -EXTENT + 2 * EXTENT * j / SEGS;
         var w = line.along === "a" ? warp(t, line.at) : warp(line.at, t), u = w[0] * sx, v = w[1] * sy;
@@ -235,18 +238,22 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(dpr, 0, 0, dpr, 0, dy * dpr);
 
-    // Mesh, dissolving at its edges: one stroke per fade step.
-    var paths = [], L;
-    for (L = 1; L <= LEVELS; L++) paths[L] = new Path2D();
-    MESH.forEach(function (line) {
-      meshExtent(line, building ? easeInOut((t - Math.abs(line.at) * 90) / 1000) : 1);
-      meshSegments(paths, line);
-    });
-    ctx.strokeStyle = colour.dot;
-    ctx.lineWidth = 0.7;
-    for (L = 1; L <= LEVELS; L++) {
-      ctx.globalAlpha = greyO * 0.4 * L / LEVELS;
-      ctx.stroke(paths[L]);
+    // Mesh, dissolving at its edges: one stroke per fade step. It fades out
+    // with the first scroll, before the zoom starts.
+    var gridO = greyO * (1 - stage(progress, GRID));
+    if (gridO > 0) {
+      var paths = [], L;
+      for (L = 1; L <= LEVELS; L++) paths[L] = new Path2D();
+      MESH.forEach(function (line) {
+        meshExtent(line, building ? easeInOut((t - Math.abs(line.at) * 90) / 1000) : 1);
+        meshSegments(paths, line);
+      });
+      ctx.strokeStyle = colour.dot;
+      ctx.lineWidth = 0.7;
+      for (L = 1; L <= LEVELS; L++) {
+        ctx.globalAlpha = gridO * 0.4 * L / LEVELS;
+        ctx.stroke(paths[L]);
+      }
     }
 
     // Grey points, filled as one shape so that overlapping points do not
